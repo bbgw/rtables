@@ -4,14 +4,15 @@ on: [push]
 
 jobs:
     build:
+        runs-on: ubuntu-latest
         container: rocker/tidyverse:3.6.2
         steps:
             - uses: actions/checkout@v2
+              with:
+                path: pkgsource
 
             - name: Build R package
-              run: |
-                  R CMD build .
-                  echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
+              run: R CMD build pkgsource
             - name: Install R package
               run: R CMD INSTALL ${PKGBUILD}    
             - name: Check R package
