@@ -14,11 +14,3 @@ jobs:
             - name: "check if manuals are upto date with roxygen comments"
               run: |
                 Rscript -e "roxygen2::roxygenize('pkgsource', roclets = c('rd', 'collate', 'namespace'))"
-                if [[ -z $(git status -s) ]]
-                then
-                    echo "manuals are not upto date with roxygen comments"
-                    echo "please rerun roxygen2::roxygenize('pkgsource', roclets = c('rd', 'collate', 'namespace'))"
-                    set -o errexit
-                else
-                    echo "manuals are upto date with roxygen comments"
-                fi
