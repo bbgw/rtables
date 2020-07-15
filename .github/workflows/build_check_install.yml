@@ -8,8 +8,6 @@ jobs:
         container: rocker/tidyverse:3.6.2
         steps:
             - uses: actions/checkout@v2
-              with: 
-                path: pkgsource
 
             - name: Build R package
               run: |
