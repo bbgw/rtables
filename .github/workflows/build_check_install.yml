@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
     build:
-        runs-on: ubuntu-latest
         container: rocker/tidyverse:3.6.2
         steps:
             - uses: actions/checkout@v2
