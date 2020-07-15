@@ -8,20 +8,22 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
+              with: 
+                path: pkgsource
 
-            - name: "Build R package"
-            run: |
-                R CMD build pkgsource
-                echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
-            - name: "Install R package"
-            run: R CMD INSTALL ${PKGBUILD}    
-            - name: "Check R package"
-            run: |
-                R CMD check --no-manual ${PKGBUILD}
-                result=$(tail -1 << parameters.package >>.Rcheck/00check.log)
-                [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
-                [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
-            - name: "Prepare Artifacts"
-            run: |
-                mkdir artifacts
-                cp ${PKGBUILD} artifacts/
+            - name: Build R package
+              run: |
+                  R CMD build pkgsource
+                  echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
+            - name: Install R package
+              run: R CMD INSTALL ${PKGBUILD}    
+            - name: Check R package
+              run: |
+                  R CMD check --no-manual ${PKGBUILD}
+                  result=$(tail -1 << parameters.package >>.Rcheck/00check.log)
+                  [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
+                  [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
+            - name: Prepare Artifacts
+              run: |
+                  mkdir artifacts
+                  cp ${PKGBUILD} artifacts/
