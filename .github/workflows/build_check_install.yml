@@ -11,7 +11,7 @@ jobs:
 
             - name: Build R package
               run: |
-                  R CMD build pkgsource
+                  R CMD build .
                   echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
             - name: Install R package
               run: R CMD INSTALL ${PKGBUILD}    
