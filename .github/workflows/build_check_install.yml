@@ -11,8 +11,6 @@ jobs:
         runs-on: rocker/tidyverse:3.6.2
 
     steps:
-        - uses: actions/checkout@v2
-
         - name: "Build R package"
           run: |
             R CMD build pkgsource
