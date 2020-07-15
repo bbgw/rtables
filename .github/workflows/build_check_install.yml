@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
     build:
-        runs-on: rocker/tidyverse:3.6.2
+        runs-on: rocker/tidyverseś
 
         steps:
             - uses: actions/checkout@v2
