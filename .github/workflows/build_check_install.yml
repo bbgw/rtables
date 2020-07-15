@@ -14,14 +14,14 @@ jobs:
             - name: Build R package
               run: R CMD build pkgsource
             - name: Install R package
-              run: R CMD INSTALL ${PKGBUILD}    
+              run: R CMD INSTALL pkgsource    
             - name: Check R package
               run: |
-                  R CMD check --no-manual ${PKGBUILD}
+                  R CMD check --no-manual pkgsource
                   result=$(tail -1 << parameters.package >>.Rcheck/00check.log)
                   [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
                   [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
             - name: Prepare Artifacts
               run: |
                   mkdir artifacts
-                  cp ${PKGBUILD} artifacts/
+                  cp pkgsource artifacts/
