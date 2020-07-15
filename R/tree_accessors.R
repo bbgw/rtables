@@ -1,7 +1,3 @@
-
-
-setMethod("nrow", "ElementaryTable",
-          function(x) length(tree_children(x)))
 ## XXX Do we want add.labrows here or no?
 ## we have to choose one and stick to it.
 setMethod("nrow", "VTableTree",
@@ -73,37 +69,37 @@ setMethod("content_table<-", c("TableTree", "ElementaryTable"),
 })
 
 
-setGeneric("next_rpos", function(obj, newtree = FALSE) standardGeneric("next_rpos"))
+setGeneric("next_rpos", function(obj, nested = TRUE) standardGeneric("next_rpos"))
 
 setMethod("next_rpos", "PreDataTableLayouts",
-          function(obj, newtree) next_rpos(rlayout(obj), newtree))
+          function(obj, nested) next_rpos(rlayout(obj), nested))
 
 setMethod("next_rpos", "PreDataRowLayout",
-          function(obj, newtree) {
+          function(obj, nested) {
     l = length(obj)
-    if(newtree && length(obj[[l]]) > 0L)
+    if(!nested && length(obj[[l]]) > 0L)
         l = l + 1L
 
     l
 })
 
 
-setMethod("next_rpos", "ANY", function(obj, newtree) 1L)
+setMethod("next_rpos", "ANY", function(obj, nested) 1L)
 
-setGeneric("next_cpos", function(obj, newtree = FALSE) standardGeneric("next_cpos"))
+setGeneric("next_cpos", function(obj, nested = TRUE) standardGeneric("next_cpos"))
 
 setMethod("next_cpos", "PreDataTableLayouts",
-          function(obj, newtree) next_cpos(clayout(obj), newtree))
+          function(obj, nested) next_cpos(clayout(obj), nested))
 
 setMethod("next_cpos", "PreDataColLayout",
-          function(obj, newtree) {
-    if(newtree)
+          function(obj, nested) {
+    if(!nested)
         length(obj) + 1L
     else
         length(obj)
 })
 
-setMethod("next_cpos", "ANY", function(obj, newtree) 1L)
+setMethod("next_cpos", "ANY", function(obj, nested) 1L)
 
 
 setGeneric("last_rowsplit", function(obj) standardGeneric("last_rowsplit"))
@@ -186,17 +182,17 @@ setMethod("pos_splvals", "VLayoutNode",
 
          
 
-setGeneric("pos_split_lbls", function(obj) standardGeneric("pos_split_lbls"))
-setMethod("pos_split_lbls", "TreePos",
+setGeneric("pos_split_labels", function(obj) standardGeneric("pos_split_labels"))
+setMethod("pos_split_labels", "TreePos",
           function(obj) {
     spls = pos_splits(obj)
     sapply(spls, function(x) x@split_label)
 })
 
-## setMethod("pos_split_lbls", "VNodeInfo",
-##            function(obj) pos_split_lbls(tree_pos(obj)))
-setMethod("pos_split_lbls", "VLayoutNode",
-           function(obj) pos_split_lbls(tree_pos(obj)))
+## setMethod("pos_split_labels", "VNodeInfo",
+##            function(obj) pos_split_labels(tree_pos(obj)))
+setMethod("pos_split_labels", "VLayoutNode",
+           function(obj) pos_split_labels(tree_pos(obj)))
 
 
 setGeneric("split_texttype", function(obj) standardGeneric("split_texttype"))
@@ -223,13 +219,13 @@ setMethod("pos_spltypes", "TreePos",
 setMethod("pos_spltypes", "VLayoutNode",
           function(obj) pos_spltypes(tree_pos(obj)))
 
-setGeneric("pos_splval_lbls", function(obj) standardGeneric("pos_splval_lbls"))
-setMethod("pos_splval_lbls", "TreePos",
+setGeneric("pos_splval_labels", function(obj) standardGeneric("pos_splval_labels"))
+setMethod("pos_splval_labels", "TreePos",
           function(obj) obj@sval_labels)
-## setMethod("pos_splval_lbls", "VNodeInfo",
-##            function(obj) pos_splval_lbls(tree_pos(obj)))
-setMethod("pos_splval_lbls", "VLayoutNode",
-           function(obj) pos_splval_lbls(tree_pos(obj)))
+## setMethod("pos_splval_labels", "VNodeInfo",
+##            function(obj) pos_splval_labels(tree_pos(obj)))
+setMethod("pos_splval_labels", "VLayoutNode",
+           function(obj) pos_splval_labels(tree_pos(obj)))
 
 
 
@@ -289,13 +285,18 @@ setMethod("obj_label<-", "TableRow",
     obj@label = value
     obj
 })
+setMethod("obj_label<-", "CellValue",
+          function(obj, value){
+    obj@label = value
+    obj
+})
 
 setMethod("obj_label<-", "VTableTree",
           function(obj, value) {
     lr = tt_labelrow(obj)
     obj_label(lr) = value
     if( !is.na(value) && nzchar(value))
-        lblrow_visible(lr) = TRUE
+        labelrow_visible(lr) = TRUE
  
     tt_labelrow(obj) = lr
     obj
@@ -313,37 +314,53 @@ setMethod("tt_labelrow<-", "VTableTree",
     obj
 })
 
-setGeneric("lblrow_visible", function(obj) standardGeneric("lblrow_visible"))
-setMethod("lblrow_visible", "VTableTree",
+setGeneric("labelrow_visible", function(obj) standardGeneric("labelrow_visible"))
+setMethod("labelrow_visible", "VTableTree",
           function(obj) {
-    lblrow_visible(tt_labelrow(obj))
+    labelrow_visible(tt_labelrow(obj))
 })
-setMethod("lblrow_visible", "LabelRow",
+setMethod("labelrow_visible", "LabelRow",
           function(obj) obj@visible)
 
-setGeneric("lblrow_visible<-", function(obj, value) standardGeneric("lblrow_visible<-"))
-setMethod("lblrow_visible<-", "VTableTree",
+setMethod("labelrow_visible", "AnalyzeVarSplit",
+          function(obj) obj@var_label_visible)
+
+
+
+setGeneric("labelrow_visible<-", function(obj, value) standardGeneric("labelrow_visible<-"))
+setMethod("labelrow_visible<-", "VTableTree",
           function(obj, value) {
     lr = tt_labelrow(obj)
-    lblrow_visible(lr) = value
+    labelrow_visible(lr) = value
     tt_labelrow(obj) = lr
     obj
 })
-setMethod("lblrow_visible<-", "LabelRow",
+setMethod("labelrow_visible<-", "LabelRow",
           function(obj, value) {
     obj@visible = value
     obj
 })
 
+setMethod("labelrow_visible<-", "AnalyzeVarSplit",
+          function(obj, value) {
+    obj@var_label_visible = value
+    obj
+})
+
 
 ## TRUE is always, FALSE is never, NA is only when no
-## content function is present
+## content function (or rows in an instantiated table) is present
 setGeneric("label_kids", function(spl) standardGeneric("label_kids"))
 setMethod("label_kids", "Split", function(spl) spl@label_children)
 
 setGeneric("label_kids<-", function(spl, value) standardGeneric("label_kids<-"))
-setMethod("label_kids<-", "Split", function(spl, value) {
-    spl@label_children = value
+setMethod("label_kids<-", c("Split", "character"), function(spl, value) {
+    label_kids(spl) <- .labelkids_helper(value)
+    spl
+})
+
+setMethod("label_kids<-", c("Split", "logical"), function(spl, value) {
+    spl@label_children <- value
     spl
 })
 
@@ -361,6 +378,16 @@ setMethod("content_fun<-", "Split", function(object, value) {
     object
 })
 
+
+setGeneric("content_var", function(obj) standardGeneric("content_var"))
+setMethod("content_var", "Split", function(obj) obj@content_var)
+
+
+setGeneric("content_var<-", function(object, value) standardGeneric("content_var<-"))
+setMethod("content_var<-", "Split", function(object, value) {
+    object@content_var = value
+    object
+})
 
 setGeneric("analysis_fun", function(obj) standardGeneric("analysis_fun"))
 setMethod("analysis_fun", "AnalyzeVarSplit", function(obj) obj@analysis_fun)
@@ -391,8 +418,8 @@ setMethod("avar_inclNAs<-", "AnalyzeVarSplit",
 })
 
 
-setGeneric("spl_lblvar", function(obj) standardGeneric("spl_lblvar"))
-setMethod("spl_lblvar", "VarLevelSplit", function(obj) obj@value_lbl_var)
+setGeneric("spl_labelvar", function(obj) standardGeneric("spl_labelvar"))
+setMethod("spl_labelvar", "VarLevelSplit", function(obj) obj@value_label_var)
 
 setGeneric("spl_child_order", function(obj) standardGeneric("spl_child_order"))
 setMethod("spl_child_order", "VarLevelSplit", function(obj) obj@value_order)
@@ -419,7 +446,7 @@ setMethod("spl_child_order",
 
 setMethod("spl_child_order",
           "VarStaticCutSplit",
-          function(obj) spl_cutlbls(obj))
+          function(obj) spl_cutlabels(obj))
 
 
 
@@ -544,30 +571,30 @@ setMethod("spanned_values<-", "LabelRow",
 ### Format manipulation
 ### obj_format<- is not recursive
 
-setGeneric("obj_fmt", function(obj) standardGeneric("obj_fmt"))
+setGeneric("obj_format", function(obj) standardGeneric("obj_format"))
 ## this covers rcell, etc
-setMethod("obj_fmt", "ANY", function(obj) attr(obj, "format"))
-setMethod("obj_fmt", "VTableNodeInfo", function(obj) obj@format)
-setMethod("obj_fmt", "CellValue", function(obj) obj@format)
-setMethod("obj_fmt", "Split", function(obj) obj@split_format)
+setMethod("obj_format", "ANY", function(obj) attr(obj, "format"))
+setMethod("obj_format", "VTableNodeInfo", function(obj) obj@format)
+setMethod("obj_format", "CellValue", function(obj) obj@format)
+setMethod("obj_format", "Split", function(obj) obj@split_format)
 
-setGeneric("obj_fmt<-", function(obj, value) standardGeneric("obj_fmt<-"))
+setGeneric("obj_format<-", function(obj, value) standardGeneric("obj_format<-"))
 ## this covers rcell, etc
-setMethod("obj_fmt<-", "ANY", function(obj, value) {
+setMethod("obj_format<-", "ANY", function(obj, value) {
     attr(obj, "format") = value
     obj
 })
-setMethod("obj_fmt<-", "VTableNodeInfo", function(obj, value) {
+setMethod("obj_format<-", "VTableNodeInfo", function(obj, value) {
     obj@format = value
     obj
 })
 
-setMethod("obj_fmt<-", "Split", function(obj, value) {
+setMethod("obj_format<-", "Split", function(obj, value) {
     obj@split_format = value
     obj
 })
 
-setMethod("obj_fmt<-", "CellValue", function(obj, value) {
+setMethod("obj_format<-", "CellValue", function(obj, value) {
     obj@format = value
     obj
 })
@@ -575,48 +602,48 @@ setMethod("obj_fmt<-", "CellValue", function(obj, value) {
 
 
 
-setGeneric("set_fmt_recursive", function(obj, fmt, override = FALSE) standardGeneric("set_fmt_recursive"))
-setMethod("set_fmt_recursive", "TableRow",
-          function(obj, fmt, override = FALSE) {
-    if(is.null(fmt))
+setGeneric("set_format_recursive", function(obj, format, override = FALSE) standardGeneric("set_format_recursive"))
+setMethod("set_format_recursive", "TableRow",
+          function(obj, format, override = FALSE) {
+    if(is.null(format))
         return(obj)
-    if(is.null(obj_fmt(obj)) || override)
-        obj_fmt(obj) = fmt
+    if(is.null(obj_format(obj)) || override)
+        obj_format(obj) = format
     lcells = row_cells(obj)
     lvals = lapply(lcells, function(x) {
-        if(!is.null(x) && is.null(obj_fmt(x)))
-            obj_fmt(x) = obj_fmt(obj)
+        if(!is.null(x) && is.null(obj_format(x)))
+            obj_format(x) = obj_format(obj)
         x
     })
     row_values(obj) = lvals
     obj
 })
 
-setMethod("set_fmt_recursive", "LabelRow",
-          function(obj, fmt, override = FALSE) obj)
-setMethod("set_fmt_recursive", "VTableTree",
-          function(obj, fmt, override = FALSE) {
-    force(fmt)
-    if(is.null(fmt))
+setMethod("set_format_recursive", "LabelRow",
+          function(obj, format, override = FALSE) obj)
+setMethod("set_format_recursive", "VTableTree",
+          function(obj, format, override = FALSE) {
+    force(format)
+    if(is.null(format))
         return(obj)
     
-    if(is.null(obj_fmt(obj)) || override)
-        obj_fmt(obj) = fmt
+    if(is.null(obj_format(obj)) || override)
+        obj_format(obj) = format
     
     kids = tree_children(obj)
-    kids = lapply(kids, function(x, fmt2, oride) set_fmt_recursive(x,
-                                                                      fmt = fmt2, override = oride),
-                  fmt2 = obj_fmt(obj), oride = override)
+    kids = lapply(kids, function(x, format2, oride) set_format_recursive(x,
+                                                                      format = format2, override = oride),
+                  format2 = obj_format(obj), oride = override)
     tree_children(obj) = kids
     obj
 })
 
-setGeneric("content_fmt", function(obj) standardGeneric("content_fmt"))
-setMethod("content_fmt", "Split", function(obj) obj@content_format)
+setGeneric("content_format", function(obj) standardGeneric("content_format"))
+setMethod("content_format", "Split", function(obj) obj@content_format)
 
-setGeneric("content_fmt<-", function(obj, value) standardGeneric("content_fmt<-"))
+setGeneric("content_format<-", function(obj, value) standardGeneric("content_format<-"))
 
-setMethod("content_fmt<-", "Split", function(obj, value) {
+setMethod("content_format<-", "Split", function(obj, value) {
     obj@content_format = value
     obj
 })
@@ -625,31 +652,31 @@ setMethod("content_fmt<-", "Split", function(obj, value) {
 ## this one tiny utility function is NOT worth a dependency.
 ## modified it so any length 0 x grabs y
 `%||%` = function(L, R) if(length(L) == 0) R else L
-setGeneric("value_fmts", function(obj, default = obj_fmt(obj)) standardGeneric("value_fmts"))
-setMethod("value_fmts", "ANY",
+setGeneric("value_formats", function(obj, default = obj_format(obj)) standardGeneric("value_formats"))
+setMethod("value_formats", "ANY",
           function(obj, default) {
     attr(obj, "format") %||% default
 })
 
-setMethod("value_fmts", "TableRow",
+setMethod("value_formats", "TableRow",
           function(obj, default) {
-    fmts = lapply(row_values(obj), function(x)
-        value_fmts(x) %||% default)
-    fmts
+    formats = lapply(row_values(obj), function(x)
+        value_formats(x) %||% default)
+    formats
 })
 
-setMethod("value_fmts", "LabelRow",
+setMethod("value_formats", "LabelRow",
           function(obj, default) {
     rep(list(NULL), ncol(obj))
 })
 
 
 
-setMethod("value_fmts", "VTableTree",
+setMethod("value_formats", "VTableTree",
           function(obj, default) {
     rws = collect_leaves(obj, TRUE, TRUE)
-    fmtrws = lapply(rws, value_fmts)
-    mat = do.call(rbind, fmtrws)
+    formatrws = lapply(rws, value_formats)
+    mat = do.call(rbind, formatrws)
     row.names(mat) = NULL
     mat
 })
@@ -679,7 +706,7 @@ setGeneric("collect_leaves",
 setMethod("collect_leaves", "TableTree",
           function(tt, incl.cont = TRUE, add.labrows = FALSE) {
     ret = c(
-        if(add.labrows && lblrow_visible(tt)) {
+        if(add.labrows && labelrow_visible(tt)) {
             tt_labelrow(tt)
         },
         if(incl.cont) {tree_children(content_table(tt))},
@@ -695,7 +722,7 @@ setMethod("collect_leaves", "TableTree",
 setMethod("collect_leaves", "ElementaryTable",
           function(tt, incl.cont = TRUE, add.labrows = FALSE) {
     ret = tree_children(tt)
-    if(add.labrows && lblrow_visible(tt)) {
+    if(add.labrows && labelrow_visible(tt)) {
         ret = c(tt_labelrow(tt), ret)
     }
     ret
@@ -835,6 +862,12 @@ setMethod("rawvalues", "ANY", function(obj) obj)
 setMethod("rawvalues", "TreePos",
           function(obj) rawvalues(pos_splvals(obj)))
 
+setGeneric("value_names", function(obj) standardGeneric("value_names"))
+setMethod("value_names", "ANY", function(obj) as.character(rawvalues(obj)))
+setMethod("value_names", "list", function(obj) lapply(obj, value_names))
+setMethod("value_names", "ValueWrapper",  function(obj) rawvalues(obj))
+setMethod("value_names", "LevelComboSplitValue",  function(obj) obj@comboname)
+
 
 
 ## These two are similar enough we could probably combine
@@ -864,9 +897,9 @@ setMethod("split_exargs<-", "Split",
 is_labrow = function(obj) is(obj, "LabelRow")
 
 
-spl_baseline = function(obj) {
+spl_ref_group = function(obj) {
     stopifnot(is(obj, "VarLevWBaselineSplit"))
-    obj@baseline_value
+    obj@ref_group_value
 }
 
 
@@ -1202,50 +1235,50 @@ setMethod("disp_ccounts<-", "PreDataTableLayouts",
 })
 
 
-setGeneric("colcount_fmt", function(obj) standardGeneric("colcount_fmt"))
+setGeneric("colcount_format", function(obj) standardGeneric("colcount_format"))
 
-setMethod("colcount_fmt", "InstantiatedColumnInfo",
+setMethod("colcount_format", "InstantiatedColumnInfo",
           function(obj) obj@columncount_format)
 
-setMethod("colcount_fmt", "VTableNodeInfo",
-          function(obj) colcount_fmt(col_info(obj)))
+setMethod("colcount_format", "VTableNodeInfo",
+          function(obj) colcount_format(col_info(obj)))
 
 
-setMethod("colcount_fmt", "PreDataColLayout",
+setMethod("colcount_format", "PreDataColLayout",
           function(obj) obj@columncount_format)
 
-setMethod("colcount_fmt", "PreDataTableLayouts",
-          function(obj) colcount_fmt(clayout(obj)))
+setMethod("colcount_format", "PreDataTableLayouts",
+          function(obj) colcount_format(clayout(obj)))
 
 
 
-setGeneric("colcount_fmt<-", function(obj,value) standardGeneric("colcount_fmt<-"))
+setGeneric("colcount_format<-", function(obj,value) standardGeneric("colcount_format<-"))
 
-setMethod("colcount_fmt<-", "InstantiatedColumnInfo",
+setMethod("colcount_format<-", "InstantiatedColumnInfo",
           function(obj, value) {
     obj@columncount_format = value
     obj
 })
 
-setMethod("colcount_fmt<-", "VTableNodeInfo",
+setMethod("colcount_format<-", "VTableNodeInfo",
           function(obj, value) {
     cinfo = col_info(obj)
-    colcount_fmt(cinfo) = value
+    colcount_format(cinfo) = value
     col_info(obj) = cinfo
     obj
 })
 
 
-setMethod("colcount_fmt<-", "PreDataColLayout",
+setMethod("colcount_format<-", "PreDataColLayout",
           function(obj, value) {
     obj@columncount_format = value
     obj
 })
 
-setMethod("colcount_fmt<-", "PreDataTableLayouts",
+setMethod("colcount_format<-", "PreDataTableLayouts",
           function(obj, value) {
     clyt = clayout(obj)
-    colcount_fmt(clyt) = value
+    colcount_format(clyt) = value
     clayout(obj) = clyt
     obj
 })
@@ -1341,8 +1374,8 @@ setGeneric("spl_cuts", function(obj) standardGeneric("spl_cuts"))
 setMethod("spl_cuts", "VarStaticCutSplit",
           function(obj) obj@cuts)
 
-setGeneric("spl_cutlbls", function(obj) standardGeneric("spl_cutlbls"))
-setMethod("spl_cutlbls", "VarStaticCutSplit",
+setGeneric("spl_cutlabels", function(obj) standardGeneric("spl_cutlabels"))
+setMethod("spl_cutlabels", "VarStaticCutSplit",
           function(obj) obj@cut_labels)
 
 
@@ -1350,8 +1383,8 @@ setGeneric("spl_cutfun", function(obj) standardGeneric("spl_cutfun"))
 setMethod("spl_cutfun", "VarDynCutSplit",
           function(obj) obj@cut_fun)
 
-setGeneric("spl_cutlblfun", function(obj) standardGeneric("spl_cutlblfun"))
-setMethod("spl_cutlblfun", "VarDynCutSplit",
+setGeneric("spl_cutlabelfun", function(obj) standardGeneric("spl_cutlabelfun"))
+setMethod("spl_cutlabelfun", "VarDynCutSplit",
           function(obj) obj@cut_label_fun)
 
 

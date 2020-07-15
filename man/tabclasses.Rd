@@ -12,14 +12,14 @@ ElementaryTable(
   kids = list(),
   name = "",
   lev = 1L,
-  lbl = "",
-  lblrow = LabelRow(lev = lev, lbl = lbl, vis = !isTRUE(iscontent) && !is.na(lbl) &&
-    nzchar(lbl)),
+  label = "",
+  labelrow = LabelRow(lev = lev, label = label, vis = !isTRUE(iscontent) &&
+    !is.na(label) && nzchar(label)),
   rspans = data.frame(),
   cinfo = NULL,
   iscontent = NA,
   var = NA_character_,
-  fmt = NULL,
+  format = NULL,
   indent_mod = 0L
 )
 
@@ -28,14 +28,14 @@ TableTree(
   name = if (!is.na(var)) var else "",
   cont = ElementaryTable(),
   lev = 1L,
-  lbl = name,
-  lblrow = LabelRow(lev = lev, lbl = lbl, vis = nrow(cont) == 0 && !is.na(lbl) &&
-    nzchar(lbl)),
+  label = name,
+  labelrow = LabelRow(lev = lev, label = label, vis = nrow(cont) == 0 && !is.na(label)
+    && nzchar(label)),
   rspans = data.frame(),
   iscontent = NA,
   var = NA_character_,
   cinfo = NULL,
-  fmt = NULL,
+  format = NULL,
   indent_mod = 0L
 )
 }
@@ -46,9 +46,7 @@ TableTree(
 
 \item{lev}{integer. Nesting level (roughly, indentation level in practical terms).}
 
-\item{lbl}{string, label, often variable label}
-
-\item{lblrow}{LabelRow. The LabelRow object to assign to this Table. Consructed from \code{lbl} by default if not specified.}
+\item{labelrow}{LabelRow. The LabelRow object to assign to this Table. Consructed from \code{label} by default if not specified.}
 
 \item{rspans}{data.frame. Currently stored but otherwise ignored.}
 
@@ -58,7 +56,7 @@ TableTree(
 
 \item{var}{string, variable name}
 
-\item{fmt}{format string for cells}
+\item{format}{format string for cells}
 
 \item{indent_mod}{numeric. Modifier for the default indent position for the structure created by this function(subtable, content table, or row) \emph{and all of that structure's children}. Defaults to 0, which corresponds to the unmodified default behavior.}
 

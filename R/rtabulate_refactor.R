@@ -26,38 +26,42 @@ setGeneric("rtab_inner", function(x, ...) standardGeneric("rtab_inner"))
 
 #' @rdname rtinner
 #' @exportMethod rtab_inner
-setMethod("rtab_inner", "numeric", function(x, ...) mean(x,...))
-#' @rdname rtinner
-#' @exportMethod rtab_inner
-setMethod("rtab_inner", "logical", function(x, ...) sum(x,...))
-
+setMethod("rtab_inner", "numeric", function(x, ...) in_rows("Mean" = rcell(mean(x,...), format = "xx.xx")))
 
 #' @rdname rtinner
 #' @exportMethod rtab_inner
-setMethod("rtab_inner", "factor", lstwrapx(table))#function(x, ...) as.list(table(x, ...)))
+setMethod("rtab_inner", "logical", function(x, ...) in_rows("Count" = rcell(sum(x,...), format = "xx")))
+
 #' @rdname rtinner
 #' @exportMethod rtab_inner
-setMethod("rtab_inner", "ANY", function(x, ...) stop("No default rtabulate behavior for class ", class(x), " please specify FUN  explicitly."))
+setMethod("rtab_inner", "factor", list_wrap_x(table))
+
+#' @rdname rtinner
+#' @exportMethod rtab_inner
+setMethod("rtab_inner", "ANY",
+          function(x, ...) {
+              stop("No default rtabulate behavior for class ", class(x), " please specify FUN  explicitly.")
+          })
 
 
 
 .rtab_colby_helper <- function(lyt,
                                cbyclass,
                                var = NA_character_,
-                               newtoplev = FALSE,
-                               extrargs = list()) {
+                               nested = FALSE,
+                               extra_args = list()) {
     ## sadly takes different argument signature...
     ## TODO fix this?
     if(identical(cbyclass, "total"))
-       return(add_overall_col(lyt, lbl = var))
-
+       return(add_overall_col(lyt, label = var))
+    stopifnot(length(cbyclass) == 1)
     addfun = switch(cbyclass,
                     quartcut_df = split_cols_by_quartiles,
                     cmlquartcut_df = function(...) split_cols_by_quartiles(..., cumulative = TRUE), 
                     split_cols_by)
     lyt <- addfun(lyt, var = var,
-                  newtoplev = newtoplev,
-                  extrargs = extrargs)
+                  nested = nested,
+                  extra_args = extra_args)
     lyt
 }
                                
@@ -350,8 +354,8 @@ rtabulate <- function(x,
             
             lyt <- .rtab_colby_helper(lyt, cby_class,
                                       var = cby_nms[i],
-                                      newtoplev = newtop,
-                                      extrargs = ex)
+                                      nested = !newtop,
+                                      extra_args = ex)
             newtop = FALSE
         }
         
@@ -367,25 +371,23 @@ rtabulate <- function(x,
 
         for(rspl in names(rdf)) {
             lyt <- split_rows_by(lyt,
-                                       rspl,
-                                       lbl ="",
-                                       lblkids = FALSE)
+                                 rspl,
+                                 split_label ="",
+                                 child_labels = "hidden")
         }
     }
     ## rows
-    lbls = row.name
-    if(nchar(lbls) == 0 && usexnms)
-       lbls = xcols
+    labels = row.name
+    if(nchar(labels) == 0 && usexnms)
+       labels = xcols
        
     lyt <- analyze(lyt,
-                             var = xcols,
-                             lbl = "",#lbls,
-                             defrowlab = row.name, #lbls,# row.name,
-                             afun = FUN,
-                             fmt = format,
-                             extrargs = list(...),
-                             lblkids = FALSE
-                             )
+                   vars = xcols,
+                   afun = FUN,
+                   var_labels = "",
+                   format = format,
+                   extra_args = list(...),
+                   show_labels = "hidden")
     ## XXX a way to just return the layout?
     ## but x needs to be padded with the relevant
     ## columns so not sure...

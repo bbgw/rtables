@@ -17,9 +17,11 @@ Imports:
   purrr
 Suggests:
   dplyr,
+  tibble,
   tidyr,
   testthat,
   xml2,
+  crayon,
   knitr
 License: Apache License 2.0 | file LICENSE
 Encoding: UTF-8
@@ -43,6 +45,7 @@ Collate:
     'indent.R'
     'labels.R'
     'make_subset_expr.R'
+    'prune.R'
     'rtable.R'
     'rtabulate_refactor.R'
     'sort.R'
@@ -55,6 +58,5 @@ Collate:
     'tt_dotabulation.R'
     'tt_paginate.R'
     'tt_pos_and_access.R'
-    'tt_rsp.R'
     'tt_showmethods.R'
     'tt_toString.R'

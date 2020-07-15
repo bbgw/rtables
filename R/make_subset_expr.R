@@ -2,11 +2,13 @@
 setGeneric("make_subset_expr", function(spl, val) standardGeneric("make_subset_expr"))
 setMethod("make_subset_expr", "VarLevelSplit",
           function(spl, val) {
-    v = rawvalues(val)
-    as.expression(bquote((!is.na(.(a)) & .(a) == .(b)), list(a = as.name(spl_payload(spl)),
-                              b = v)))
-
-
+    v = unlist(rawvalues(val))
+    ## XXX if we're including all levels should even missing be included?
+    if(is(v, "AllLevelsSentinel"))
+        as.expression(bquote((!is.na(.(a))), list(a = as.name(spl_payload(spl)))))
+    else
+        as.expression(bquote((!is.na(.(a)) & .(a) %in% .(b)), list(a = as.name(spl_payload(spl)),
+                                                                   b = v)))
 })
 
 setMethod("make_subset_expr", "MultiVarSplit",
@@ -27,26 +29,26 @@ setMethod("make_subset_expr", "AnalyzeVarSplit",
 setMethod("make_subset_expr", "VarStaticCutSplit",
           function(spl, val) {
     v = rawvalues(val)
-    as.expression(bquote(which(cut(.(a), breaks=.(brk), labels = .(lbls),
+    as.expression(bquote(which(cut(.(a), breaks=.(brk), labels = .(labels),
                                    include.lowest = TRUE) == .(b)),
                   list(a = as.name(spl_payload(spl)),
                        b = v,
                        brk = spl_cuts(spl),
-                       lbls = spl_cutlbls(spl))))
+                       labels = spl_cutlabels(spl))))
 })
 
-## NB this assumes spl_cutlbls(spl) is in order!!!!!!
+## NB this assumes spl_cutlabels(spl) is in order!!!!!!
 setMethod("make_subset_expr", "CumulativeCutSplit",
           function(spl, val) {
     v = rawvalues(val)
     as.expression(bquote(which(as.integer(cut(.(a), breaks=.(brk),
-                                              labels = .(lbls),
+                                              labels = .(labels),
                                               include.lowest = TRUE)) <=
-                               as.integer(factor(.(b), levels = .(lbls)))),
+                               as.integer(factor(.(b), levels = .(labels)))),
                   list(a = as.name(spl_payload(spl)),
                        b = v,
                        brk = spl_cuts(spl),
-                       lbls = spl_cutlbls(spl))))
+                       labels = spl_cutlabels(spl))))
 })
 
 
@@ -174,13 +176,13 @@ create_colinfo = function(lyt, df, rtpos = TreePos(),
             }
         })
     }
-    fmt =  colcount_fmt(lyt)
+    format =  colcount_format(lyt)
     InstantiatedColumnInfo(treelyt = ctree,
                            csubs = cexprs,
                            extras = cextras,
                            cnts = counts,
                            dispcounts = disp_ccounts(lyt),
-                           countfmt = fmt)
+                           countformat = format)
     
 }
 

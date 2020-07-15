@@ -4,16 +4,16 @@
 \alias{CellValue}
 \title{Cell Value constructor}
 \usage{
-CellValue(val, fmt = NULL, colspan = 1L, lbl = NULL)
+CellValue(val, format = NULL, colspan = 1L, label = NULL)
 }
 \arguments{
 \item{val}{ANY. value in the cell exactly as it should be passed to a formatter or returned when extracted}
 
-\item{fmt}{format string for cells}
+\item{format}{format string for cells}
 
 \item{colspan}{integer. Generally ignored currently.}
 
-\item{lbl}{string, label, often variable label}
+\item{label}{used as row name if the row name is not specified by \code{in_rows}}
 }
 \description{
 Cell Value constructor

@@ -79,13 +79,13 @@ setMethod("replace_rows", c(value = "list"),
     
     if(is.null(i)) {
         i = seq_along(tree_children(x))
-        if(lblrow_visible(x))
+        if(labelrow_visible(x))
             i = i[-1]
     } else if(is.logical(i)) {
         i = which(rep(i, length.out = length(collect_leaves(x, TRUE, TRUE))))
     }
 
-    if(lblrow_visible(x) && 1 %in% i && !are(value, "TableRow") && !is.null(value[[1]]))
+    if(labelrow_visible(x) && 1 %in% i && !are(value, "TableRow") && !is.null(value[[1]]))
         stop("attempted to assign values into a LabelRow")
     
     if(length(value) != length(i))
@@ -159,7 +159,7 @@ setMethod("[<-", c("VTableTree", value = "list"),
         if(counter >= maxi)
             return(valifnone)
         
-        if(lblrow_visible(x)) {
+        if(labelrow_visible(x)) {
             counter <<- counter + 1
             if(counter %in% i) {
                 nxtval = value[[1]]
@@ -358,7 +358,7 @@ setMethod("subset_cols", c("InstantiatedColumnInfo", "numeric"),
                            extras = newcextra,
                            cnts = newcounts,
                            dispcounts = disp_ccounts(tt),
-                           countfmt = colcount_fmt(tt))
+                           countformat = colcount_format(tt))
 })
 
 setMethod("subset_cols", c("LayoutColTree", "numeric"),
@@ -405,10 +405,10 @@ subset_by_rownum = function(tt, i, ... ) {
     
     prune_rowsbynum = function(x, i, valifnone = NULL) {
         maxi = max(i)
-        if(counter >= maxi)
+        if(counter > maxi)
             return(valifnone)
         
-        if(lblrow_visible(x)) {
+        if(labelrow_visible(x)) {
             counter <<- counter + 1
             if(!(counter %in% i)) {
                 ## XXX this should do whatever
@@ -416,7 +416,7 @@ subset_by_rownum = function(tt, i, ... ) {
                 ## (currently implicit based on
                 ## the value of the label but
                 ## that shold really probably change)
-                lblrow_visible(x) <- FALSE
+                labelrow_visible(x) <- FALSE
             }
         }
         if(is(x, "TableTree") && nrow(content_table(x)) > 0) {
@@ -426,7 +426,7 @@ subset_by_rownum = function(tt, i, ... ) {
                                                valifnone = ElementaryTable(cinfo = col_info(ctab), iscontent = TRUE))
         }
         kids = tree_children(x)
-        if(counter >= maxi) { #already done
+        if(counter > maxi) { #already done
             kids = list()
         } else if(length(kids) > 0) {
             for(pos in seq_along(kids)) {
@@ -439,13 +439,13 @@ subset_by_rownum = function(tt, i, ... ) {
                     kids[[pos]] = prune_rowsbynum(kids[[pos]], i, list())
                 }
             }
-            kids = kids[sapply(kids, function(x) length(x) > 0)]
+            kids = kids[sapply(kids, function(x) NROW(x) > 0)]
         }
         tree_children(x) = kids
-        if(length(kids) == 0) {
-            if(!is(x, "TableTree"))
-                return(valifnone)
-        }
+        ## if(length(kids) == 0) {
+        ##     if(!is(x, "TableTree"))
+        ##         return(valifnone)
+        ## }
         if(is(x, "VTableTree") && nrow(x) > 0) {
             x
         } else {

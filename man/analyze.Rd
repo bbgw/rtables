@@ -6,38 +6,33 @@
 \usage{
 analyze(
   lyt,
-  var,
-  lbl = var,
+  vars,
   afun = rtab_inner,
-  fmt = NULL,
-  defrowlab = "",
-  newtoplev = FALSE,
+  var_labels = vars,
+  format = NULL,
+  nested = TRUE,
   inclNAs = FALSE,
-  extrargs = list(),
-  lblkids = TRUE,
+  extra_args = list(),
+  show_labels = c("default", "visible", "hidden"),
   indent_mod = 0L
 )
 }
 \arguments{
 \item{lyt}{layout object pre-data used for tabulation}
 
-\item{var}{string, variable name}
-
-\item{lbl}{string, label, often variable label}
+\item{vars}{character vector. Multiple variable names.}
 
 \item{afun}{function. Analysis function, must take \code{x} or \code{df} as its first parameter. Can optionally take other parameters which will be populated by the tabulation framework. See Details in \code{\link{analyze}}.}
 
-\item{fmt}{format string for cells}
+\item{var_labels}{character. Variable labels for 1 or more variables}
 
-\item{defrowlab}{character vector. Default row labels for resulting analysis rows.}
+\item{format}{format string for cells}
 
-\item{newtoplev}{boolean, Add this as a new top-level split  (defining a new subtable directly under root). Defaults to \code{FALSE}}
+\item{nested}{boolean, Add this as a new top-level split  (defining a new subtable directly under root). Defaults to \code{FALSE}}
 
 \item{inclNAs}{boolean. Should observations with NA in the \code{var} variable(s) be included when performing this analysis. Defaults to \code{FALSE}}
 
-\item{extrargs}{list. Extra arguments to be passed to the tabulation function. Element position in thte list corresponds to the children of this split. Named elements in the child-specific lists are ignored if they do not match a formal argument of the ttabulation function.}
-
-\item{lblkids}{logical. Should the children of this split have label rows. Defaults to \code{NA} which creates a label row only if the child has 0 content rows.}
+\item{extra_args}{list. Extra arguments to be passed to the tabulation function. Element position in thte list corresponds to the children of this split. Named elements in the child-specific lists are ignored if they do not match a formal argument of the ttabulation function.}
 
 \item{indent_mod}{numeric. Modifier for the default indent position for the structure created by this function(subtable, content table, or row) \emph{and all of that structure's children}. Defaults to 0, which corresponds to the unmodified default behavior.}
 }
@@ -57,14 +52,14 @@ In addition to differentation on the first argument, the analysis function can o
 \describe{
 \item{.N_col}{column-wise N (column count) for the full column being tabulated within}
 \item{.N_total}{ overall N (all observation count, defined as sum of column counts) for the tabulation}
-\item{.baseline_data}{data.frame subset corresponding to the baseline column. Currently does not reflect row-splittin but this will change. Optional and only required/meaningful if a baseline column has been defined}
+\item{.ref_group_data}{data.frame subset corresponding to the ref_group column. Currently does not reflect row-splittin but this will change. Optional and only required/meaningful if a ref_group column has been defined}
 }
 }
 \examples{
 
 l <- basic_table() \%>\%
     split_cols_by("ARM") \%>\% 
-    analyze("AGE", afun = lstwrapx(summary) , fmt = "xx.xx")
+    analyze("AGE", afun = list_wrap_x(summary) , format = "xx.xx")
 l
 
 build_table(l, DM)

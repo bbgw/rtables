@@ -4,25 +4,16 @@
 \alias{analyze_colvars}
 \title{Generate Rows Analyzing Different Variables Across Columns}
 \usage{
-analyze_colvars(
-  lyt,
-  afun,
-  fmt = NULL,
-  newtoplev = FALSE,
-  defrowlab,
-  indent_mod = 0L
-)
+analyze_colvars(lyt, afun, format = NULL, nested = TRUE, indent_mod = 0L)
 }
 \arguments{
 \item{lyt}{layout object pre-data used for tabulation}
 
 \item{afun}{function. Analysis function, must take \code{x} or \code{df} as its first parameter. Can optionally take other parameters which will be populated by the tabulation framework. See Details in \code{\link{analyze}}.}
 
-\item{fmt}{format string for cells}
+\item{format}{format string for cells}
 
-\item{newtoplev}{boolean, Add this as a new top-level split  (defining a new subtable directly under root). Defaults to \code{FALSE}}
-
-\item{defrowlab}{character vector. Default row labels for resulting analysis rows.}
+\item{nested}{boolean, Add this as a new top-level split  (defining a new subtable directly under root). Defaults to \code{FALSE}}
 
 \item{indent_mod}{numeric. Modifier for the default indent position for the structure created by this function(subtable, content table, or row) \emph{and all of that structure's children}. Defaults to 0, which corresponds to the unmodified default behavior.}
 }
@@ -31,18 +22,18 @@ TODO here indicates that the variables whose data are ultimately processed by af
 level of nesting in the column structure, rather than at the row level.
 }
 \examples{
-
-l <- basic_table() \%>\% split_cols_by("ARM", "Arm") \%>\%
-  split_cols_by_multivar(c("value", "pctdiff"), "TODO Multiple Variables") \%>\%
-  split_rows_by("RACE", "ethnicity", splfun = drop_split_levels) \%>\%
-  analyze_colvars( afun = mean, fmt = "xx.xx")
-
-l
-
-library(dplyr)
-ANL <- DM \%>\% mutate(value = rnorm(n()), pctdiff = runif(n()))
-
-build_table(l, ANL)
+# TODO
+# l <- basic_table() \%>\% split_cols_by("ARM", "Arm") \%>\%
+#   split_cols_by_multivar(c("value", "pctdiff"), "TODO Multiple Variables") \%>\%
+#   split_rows_by("RACE", "ethnicity", split_fun = drop_split_levels) \%>\%
+#   analyze_colvars(afun = mean, format = "xx.xx")
+# 
+# l
+#
+# library(dplyr)
+# ANL <- DM \%>\% mutate(value = rnorm(n()), pctdiff = runif(n()))
+# 
+# build_table(l, ANL)
 }
 \seealso{
 \code{\link{split_cols_by_multivar}}

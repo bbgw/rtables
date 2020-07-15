@@ -22,8 +22,8 @@ setMethod("print", "VTableTree", function(x, ...) {
 #' 
 #' 
 #' @param x table object
-#' @param widths widths of rowname and colmns columns
-#' @param column_gap gap between columns
+#' @param widths widths of row.name and columns columns
+#' @param col_gap gap between columns
 #' 
 #' @exportMethod toString
 #' 
@@ -38,17 +38,18 @@ setMethod("print", "VTableTree", function(x, ...) {
 #' l <- basic_table() %>% 
 #'   split_cols_by("Species") %>%
 #'   split_cols_by("group") %>%
-#'   analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx")
+#'   analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx")
 #' 
 #' tbl <- build_table(l, iris2)
 #' 
-#' toString(tbl, gap = 3)
-#' 
-setMethod("toString", "VTableTree", function(x, widths = NULL, column_gap = 3, row_gap_at_depth = 1) {
+#' cat(toString(tbl, col_gap = 3))
+setMethod("toString", "VTableTree", function(x, widths = NULL, col_gap = 3) {
   
-  browser()
   ## we create a matrix with the formatted cell contents
   mat <- matrix_form(x)
+  
+  # indent rownames
+  mat$strings[, 1] <- indent_string(mat$strings[, 1], c(rep(0, attr(mat, "nrow_header")), mat$row_info$indent))
   
   if (is.null(widths)) {
     widths <- propose_column_widths(x, mat_form = mat)
@@ -62,13 +63,13 @@ setMethod("toString", "VTableTree", function(x, widths = NULL, column_gap = 3, r
   spans <- mat$spans
   ri <- mat$row_info
   
-  # indent rownames
-  body[, 1] <- indent_string(body[, 1], c(rep(0, attr(mat, "nrow_header")), ri$indent))
-  
-  # get rowgap position
-  insert_gap_before <- which(mat$row_info$rowtype == "LabelRow" & mat$row_info$depth %in% row_gap_at_depth)
-  insert_gap_before <- insert_gap_before[insert_gap_before != 1] # also remove the consecutive (i.e. 4,5, 8, 12 remove 5)
-  
+
+  # xxxx <- 1
+  # # get rowgap position
+  # insert_gap_before <- which(ri$depth == sort(ri$depth)[seq_len(xxxx)])
+  # # which(ri$rowtype == "LabelRow" & ri$depth == min(ri$depth))
+  # insert_gap_before <- remove_consecutive_numbers(insert_gap_before)
+  # insert_gap_before <- insert_gap_before[insert_gap_before != 1]
   
   nr <- nrow(body)
   nr_header <- attr(mat, "nrow_header")
@@ -83,7 +84,7 @@ setMethod("toString", "VTableTree", function(x, widths = NULL, column_gap = 3, r
         nj <- spans[i, j]
         j <- if (nj > 1) {
           js <- seq(j, j + nj - 1)
-          cell_widths_mat[i, js] <- sum(cell_widths_mat[i, js]) + column_gap * (nj - 1)
+          cell_widths_mat[i, js] <- sum(cell_widths_mat[i, js]) + col_gap * (nj - 1)
           j + nj
         } else {
           j + 1
@@ -101,36 +102,19 @@ setMethod("toString", "VTableTree", function(x, widths = NULL, column_gap = 3, r
   content[!keep_mat] <- NA
   # apply(content, 1, function(x) sum(nchar(x), na.rm = TRUE))
   
-  gap_str <- strrep(" ", column_gap)
+  gap_str <- strrep(" ", col_gap)
   
-  div <- strrep("-", sum(widths) + (length(widths) - 1) * column_gap)
+  div <- strrep("-", sum(widths) + (length(widths) - 1) * col_gap)
   
   txt_head <- apply(head(content, nr_header), 1, .paste_no_na, collapse = gap_str)
-  txt_body <- empty_string_after(apply(tail(content, -nr_header), 1, .paste_no_na, collapse = gap_str), insert_gap_before - 1)
+  txt_body <- apply(tail(content, -nr_header), 1, .paste_no_na, collapse = gap_str)
   
   paste0(paste(c(txt_head, div, txt_body), collapse = "\n"), "\n")
   
 })
 
 
-#' insert an empty string
-#' 
-#' @noRd
-#' 
-#' @examples 
-#' empty_string_after(letters[1:5], 2)
-#' empty_string_after(letters[1:5], c(2, 4))
-empty_string_after <- function(x, indices) {
-  
-  if (length(indices) > 0) {
-    offset <- 0
-    for (i in sort(indices)) {
-      x <- append(x, "", i + offset)
-      offset <- offset + 1
-    }
-  }
-  x
-}
+
 
 
 #' Transform rtable to a list of matrices which can be used for outputting
@@ -155,7 +139,7 @@ empty_string_after <- function(x, indices) {
 #' l <- basic_table() %>% 
 #'   split_cols_by("Species") %>%
 #'   split_cols_by("group") %>%
-#'   analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx")
+#'   analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx")
 #' 
 #' l
 #' 
@@ -304,7 +288,7 @@ matrix_form <- function(x) {
 #' tbl <- basic_table() %>% 
 #'   split_cols_by("Species") %>%
 #'   split_cols_by("group") %>%
-#'   analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx") %>%
+#'   analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx") %>%
 #'   build_table(iris2)
 #' 
 #' get_formatted_cells(tbl)
@@ -319,6 +303,11 @@ setMethod("get_formatted_cells", "TableTree",
             ct <- get_formatted_cells(content_table(obj))
             
             els <- lapply(tree_children(obj), get_formatted_cells)
+            
+            # TODO fix ncol problem for rrow()
+            if (ncol(ct) == 0 && ncol(lr) != ncol(ct)) {
+              ct <- lr[NULL, ]
+            }
             
             do.call(rbind, c(list(lr), list(ct),  els))
           })
@@ -336,27 +325,27 @@ setMethod("get_formatted_cells", "ElementaryTable",
 
 setMethod("get_formatted_cells", "TableRow",
           function(obj) {
-            default_format <- if (is.null(obj_fmt(obj))) "xx" else obj_fmt(obj)
+            default_format <- if (is.null(obj_format(obj))) "xx" else obj_format(obj)
             
             format <- lapply(row_cells(obj), function(x) {
-              fmt <- obj_fmt(x)
-              if (is.null(fmt))
+              format <- obj_format(x)
+              if (is.null(format))
                 default_format
               else
-                fmt
+                format
             })
             
-            matrix(unlist(Map(function(val, fmt, spn) {
+            matrix(unlist(Map(function(val, format, spn) {
               stopifnot(is(spn, "integer"))
-              rep(paste(format_rcell(val, fmt), collapse = ", "), spn)
+              rep(paste(format_rcell(val, format), collapse = ", "), spn)
             }, row_values(obj), format, row_cspans(obj))), ncol = ncol(obj))
             
           })
 
 setMethod("get_formatted_cells", "LabelRow",
           function(obj) {
-            nc <- ncol(obj)
-            if (lblrow_visible(obj)) {
+            nc <- ncol(obj) # TODO note rrow() or rrow("label") has the wrong ncol
+            if (labelrow_visible(obj)) {
               matrix(rep("", nc), ncol = nc)
             } else {
               matrix(character(0), ncol = nc)
@@ -385,7 +374,7 @@ setMethod("get_formatted_cells", "LabelRow",
 #' l <- basic_table() %>% 
 #'   split_cols_by("Species") %>%
 #'   split_cols_by("group") %>%
-#'   analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx")
+#'   analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx")
 #' 
 #' tbl <- build_table(l, iris2)
 #' 
@@ -437,6 +426,50 @@ propose_column_widths <- function(x, mat_form = matrix_form(x)) {
 }
 
 # utility functions ----
+
+#' from sequence remove numbers where diff == 1
+#' 
+#' numbers need to be sorted
+#' 
+#' @noRd
+#' 
+#' @examples 
+#' remove_consecutive_numbers(x = c(2, 4, 9))
+#' remove_consecutive_numbers(x = c(2, 4, 5, 9))
+#' remove_consecutive_numbers(x = c(2, 4, 5, 6, 9))
+#' remove_consecutive_numbers(x = 4:9)
+remove_consecutive_numbers <- function(x) {
+  
+  # actually should be integer
+  stopifnot(is.wholenumber(x), is.numeric(x), !is.unsorted(x))
+  
+  if (length(x) == 0) return(integer(0))
+  if (!is.integer(x)) x <- as.integer(x)
+  
+  sel <- rep(TRUE, length(x))
+  
+  x[c(TRUE, diff(x)  != 1)]
+}
+
+
+#' insert an empty string
+#' 
+#' @noRd
+#' 
+#' @examples 
+#' empty_string_after(letters[1:5], 2)
+#' empty_string_after(letters[1:5], c(2, 4))
+empty_string_after <- function(x, indices) {
+  
+  if (length(indices) > 0) {
+    offset <- 0
+    for (i in sort(indices)) {
+      x <- append(x, "", i + offset)
+      offset <- offset + 1
+    }
+  }
+  x
+}
 
 #' spread x into len elements
 #' 
@@ -540,6 +573,6 @@ padstr <- function(x, n, just = c("center", "left", "right")) {
 }
 
 spaces <- function(n) {
-  paste(rep(" ", n), collapse = "")
+  strrep(" ", n)
 }
 

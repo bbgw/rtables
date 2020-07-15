@@ -16,7 +16,7 @@ setMethod("summary", "ANY", base:::summary)
 #' l <- basic_table() %>% 
 #'     split_cols_by("Species") %>%
 #'     split_rows_by("RND") %>%
-#'     analyze(c("Sepal.Length", "Petal.Length"), afun = lstwrapx(summary) , fmt = "xx.xx")
+#'     analyze(c("Sepal.Length", "Petal.Length"), afun = list_wrap_x(summary) , format = "xx.xx")
 #' l
 #' 
 #' iris2 <- iris %>% mutate(RND = sample(c("A", "B"), 150, replace = TRUE))
@@ -53,7 +53,7 @@ setMethod("summary", "TableTree", function(object, depth = 0, indent = 0, row_ty
 #' Summary method for elementary table
 #' 
 #' @examples 
-#' tbl <- rtabulate(iris$Sepal.Length, iris$Species, lstwrapx(summary))
+#' tbl <- rtabulate(iris$Sepal.Length, iris$Species, list_wrap_x(summary))
 #' 
 setMethod("summary", "ElementaryTable", function(object, depth = 0, indent = 0, row_type) {
 
@@ -71,7 +71,7 @@ setMethod("summary", "TableRow", function(object, depth = 0, indent = 0, row_typ
 
 setMethod("summary", "LabelRow", function(object, depth = 0, indent = 0, ...) {
 
-  if (lblrow_visible(object)) {
+  if (labelrow_visible(object)) {
     cat_row(indent, obj_name(object), obj_label(object), object@visible, "label |")
     TRUE
   } else {
@@ -155,13 +155,13 @@ cat_row <- function(indent, name, label, visible, content) {
 
 
 
-summarize_row_df <- function(name, label, indent, depth, rowtype) {
-  data.frame(name = name, label = label, indent = indent, depth = depth, rowtype = rowtype, 
+summarize_row_df <- function(name, label, indent, depth, rowtype, level) {
+  data.frame(name = name, label = label, indent = indent, depth = level, rowtype = rowtype, level = level,
              stringsAsFactors = FALSE)
 }
 
 summarize_row_df_empty <- function(...) {
-  data.frame(name = character(0), label = character(0), indent = integer(0), depth = integer(0), rowtype = character(0))
+  data.frame(name = character(0), label = character(0), indent = integer(0), depth = integer(0), rowtype = character(0), level = integer(0))
 }
 
 #' Summarize Rows
@@ -181,7 +181,7 @@ summarize_row_df_empty <- function(...) {
 #' l <- basic_table() %>% 
 #'   split_cols_by("Species") %>%
 #'   split_cols_by("group") %>%
-#'   analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx")
+#'   analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx")
 #' 
 #' tbl <- build_table(l, iris2)
 #' 
@@ -237,7 +237,8 @@ setMethod("summarize_rows", "TableRow",
               label = obj_label(obj),
               indent = indent,
               depth = depth,
-              rowtype = "TableRow"
+              rowtype = "TableRow",
+              level = tt_level(obj)
             ) 
             
           })
@@ -247,13 +248,14 @@ setMethod("summarize_rows", "LabelRow",
             
             indent <- indent + indent_mod(obj)
             
-            if (lblrow_visible(obj)) {
+            if (labelrow_visible(obj)) {
               summarize_row_df(
                 name = obj_name(obj),
                 label = obj_label(obj),
                 indent = indent,
                 depth = depth,
-                rowtype = "LabelRow"
+                rowtype = "LabelRow",
+                level = tt_level(obj)
               ) 
             } else {
               summarize_row_df_empty()         

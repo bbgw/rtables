@@ -19,7 +19,7 @@ rrow = function(row.name = "", ..., format = NULL, indent = 0) {
         stop() #row.name = as.character(row.name)
     if(length(vals) == 0L) {
         LabelRow(lev = as.integer(indent),
-                 lbl = row.name,
+                 label = row.name,
                  name = row.name,
                  vis = TRUE)
     } else {
@@ -33,13 +33,13 @@ rrow = function(row.name = "", ..., format = NULL, indent = 0) {
         ## SIMPLIFY=FALSE)
         ## vals = unlist(vals,
         ##               recursive = FALSE)
-        fmts = sapply(vals, obj_fmt)
-        if(is.character(fmts) && length(unique(fmts)) == 1L && is.null(format))
-            format = unique(fmts)
-        DataRow(val = vals, lev = as.integer(indent), lbl = row.name,
+        formats = sapply(vals, obj_format)
+        if(is.character(formats) && length(unique(formats)) == 1L && is.null(format))
+            format = unique(formats)
+        DataRow(val = vals, lev = as.integer(indent), label = row.name,
                 name = row.name, ## XXX TODO
                 cspan = csps,
-                fmt = format)
+                format = format)
     }
 }
 
@@ -78,15 +78,15 @@ rrowl = function (row.name, ..., format = NULL, indent = 0)  {
 #' 
 #' @inheritParams compat_args
 #' @param x ANY. Cell value
-#' @param lbl character(1). Label or Null. If non-null, it will be looked at when determining row labels.
+#' @param label character(1). Label or Null. If non-null, it will be looked at when determining row labels.
 #' @param colspan Columnspan value. NOTE currently column spanning is only supported for defining header structure.
 #' @export
 #' 
-rcell = function(x, format = NULL, colspan = 1L, lbl = NULL) {
+rcell = function(x, format = NULL, colspan = 1L, label = NULL) {
     if(is(x, "CellValue"))
         x
     else
-        CellValue(val = x, fmt = format, colspan = colspan, lbl = lbl)
+        CellValue(val = x, format = format, colspan = colspan, label = label)
 }
 
 
@@ -109,9 +109,9 @@ hrows_to_colinfo = function(rows) {
     cspans = lapply(rows, row_cspans)
     vals = lapply(rows, function(x) unlist(row_values(x)))
     unqvals = lapply(vals, unique)
-    fmts = lapply(rows, obj_fmt)
+    formats = lapply(rows, obj_format)
     counts = NULL
-    if( fmts[ nr ] == "(N=xx)" ) { ## count row
+    if( formats[ nr ] == "(N=xx)" ) { ## count row
         counts = vals[[ nr ]]
         vals = vals[ -nr ]
         cspans = cspans[ -nr ]
@@ -366,8 +366,8 @@ rtable = function(header, ..., format = NULL) {
         body = lapply(body, function(tb) tree_children(tb)[[1]])
     }
         
-    TableTree(kids = body, fmt = format, cinfo = colinfo,
-              lblrow = LabelRow(lev = 0L, lbl = "", vis = FALSE))
+    TableTree(kids = body, format = format, cinfo = colinfo,
+              labelrow = LabelRow(lev = 0L, label = "", vis = FALSE))
 }
 
 #' @rdname rtable
@@ -407,7 +407,7 @@ rbindl_rtables <- function(x, gap = 0, check_headers = FALSE) {
 
     ## we used to check for xi not being a lable row, why?? XXX
     if(all(sapply(x, function(xi) {
-        (is(xi, "ElementaryTable") && !lblrow_visible(xi) )||
+        (is(xi, "ElementaryTable") && !labelrow_visible(xi) )||
             is(xi, "TableRow")}))) { ## && !is(xi, "LabelRow")}))) {
         x <- unlist(lapply(x, function(xi) {
             if(is(xi, "TableRow"))
@@ -421,7 +421,7 @@ rbindl_rtables <- function(x, gap = 0, check_headers = FALSE) {
     }
 
 
-    TableTree(kids = x, cinfo = firstcols, name = "rbind_root", lbl = "")
+    TableTree(kids = x, cinfo = firstcols, name = "rbind_root", label = "")
     
 }
 
@@ -479,7 +479,7 @@ setMethod("rbind2", "VTableNodeInfo",
 
 header_add_N = function(x, N) {
     col_counts(x) = as.integer(N)
-    colcount_fmt(x) = "(N=xx)"
+    colcount_format(x) = "(N=xx)"
     disp_ccounts(x) = TRUE
     x
 }
@@ -535,7 +535,7 @@ combine_cinfo = function(ci1, ci2) {
                            extras = newexargs,
                            cnts = newcounts,
                            dispcounts = newdisp,
-                           countfmt = colcount_fmt(ci1))
+                           countformat = colcount_format(ci1))
 }
 
 
@@ -626,12 +626,12 @@ setMethod("recurse_cbind", c("TableTree",
                   MoreArgs = list(cinfo = cinfo),
                   SIMPLIFY = FALSE)
     names(kids) = names(tree_children(x))
-    TableTree(kids = kids, lblrow = tt_labelrow(x),
+    TableTree(kids = kids, labelrow = tt_labelrow(x),
               cont = cont,
               name = obj_name(x),
               lev = tt_level(x),
               cinfo = cinfo,
-              fmt = obj_fmt(x))
+              format = obj_format(x))
 })
 
 setMethod("recurse_cbind", c("ElementaryTable",
@@ -649,11 +649,11 @@ setMethod("recurse_cbind", c("ElementaryTable",
                   MoreArgs = list(cinfo = cinfo),
                   SIMPLIFY = FALSE)
     names(kids) = names(tree_children(x))
-    ElementaryTable(kids = kids, lblrow = tt_labelrow(x),
+    ElementaryTable(kids = kids, labelrow = tt_labelrow(x),
                   name = obj_name(x),
                   lev = tt_level(x),
                   cinfo = cinfo,
-                  fmt = obj_fmt(x),
+                  format = obj_format(x),
                   var = obj_avar(x))
 })
 
@@ -689,9 +689,9 @@ setMethod("recurse_cbind", c("TableRow", "TableRow",
                cspan = retcsp,
                cinfo = cinfo,
                var = obj_avar(x),
-               fmt = obj_fmt(x),
+               format = obj_format(x),
                name = obj_name(x),
-               lbl = obj_label(x))
+               label = obj_label(x))
 })
 
 setMethod("recurse_cbind", c("LabelRow", "LabelRow",
@@ -796,7 +796,7 @@ insert_rrow <- function(tbl, rrow, at = 1,
                  nrow(content_table(tt))
              else
                  0
-    contnr <- contnr + as.numeric(lblrow_visible(tt))
+    contnr <- contnr + as.numeric(labelrow_visible(tt))
     
   
     totnr = nrow(tt)
@@ -804,7 +804,7 @@ insert_rrow <- function(tbl, rrow, at = 1,
     atend = !islab && endpos == at - 1
     if(at == pos + 1
        && islab) {
-        if(lblrow_visible(tt))
+        if(labelrow_visible(tt))
             stop("Inserting a label row at a position that already has a label row is not currently supported")
         tt_labelrow(tt) <- row
         return(tt)
@@ -911,7 +911,7 @@ order_rrows = function(x, indices = c(1, 1), ...) {
 #' @export
 #' @family compatability
 by_all <- function(name) {
-    AllSplit(splbl = name)
+    AllSplit(split_label = name)
 }
 
 #' @inheritParams compat_args
@@ -920,7 +920,7 @@ by_all <- function(name) {
 #' @rdname bycompats
 #' @export
 by_add_total <- function(col_by, label = "total", n = NULL) {
-    ret = add_overall_col(col_by, lbl = label)
+    ret = add_overall_col(col_by, label = label)
     if(!is.null(ret)) {
         cc = col_counts(ret)
         cc[length(cc)] <- n

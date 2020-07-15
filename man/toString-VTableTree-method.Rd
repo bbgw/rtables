@@ -4,14 +4,14 @@
 \alias{toString,VTableTree-method}
 \title{Convert an \code{rtable} object to a string}
 \usage{
-\S4method{toString}{VTableTree}(x, column_widths = NULL, gap = 3)
+\S4method{toString}{VTableTree}(x, widths = NULL, col_gap = 3)
 }
 \arguments{
 \item{x}{table object}
 
-\item{column_widths}{width of columns (row name also counts as a column here)}
+\item{widths}{widths of row.name and columns columns}
 
-\item{gap}{gap between columns}
+\item{col_gap}{gap between columns}
 }
 \description{
 Convert an \code{rtable} object to a string
@@ -27,10 +27,9 @@ iris2 <- iris \%>\%
 l <- basic_table() \%>\% 
   split_cols_by("Species") \%>\%
   split_cols_by("group") \%>\%
-  analyze(c("Sepal.Length", "Petal.Width"), afun = lstwrapx(summary) , fmt = "xx.xx")
+  analyze(c("Sepal.Length", "Petal.Width"), afun = list_wrap_x(summary) , format = "xx.xx")
 
 tbl <- build_table(l, iris2)
 
-toString(tbl, gap = 3)
-
+cat(toString(tbl, col_gap = 3))
 }

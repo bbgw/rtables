@@ -13,9 +13,9 @@
 \usage{
 LabelRow(
   lev = 1L,
-  lbl = "",
-  name = lbl,
-  vis = !is.na(lbl) && nzchar(lbl),
+  label = "",
+  name = label,
+  vis = !is.na(label) && nzchar(label),
   cinfo = InstantiatedColumnInfo(),
   indent_mod = 0L
 )
@@ -24,11 +24,11 @@ LabelRow(
   vals = list(),
   name = "",
   lev = 1L,
-  lbl = name,
+  label = name,
   cspan = rep(1L, length(vals)),
   cinfo = InstantiatedColumnInfo(),
   var = NA_character_,
-  fmt = NULL,
+  format = NULL,
   klass
 )
 
@@ -38,8 +38,6 @@ ContentRow(...)
 }
 \arguments{
 \item{lev}{integer. Nesting level (roughly, indentation level in practical terms).}
-
-\item{lbl}{string, label, often variable label}
 
 \item{name}{character(1). Name of the split/table/row being creatted. Defaults to same as the corresponding llabel, but is not required to be.}
 
@@ -55,7 +53,7 @@ ContentRow(...)
 
 \item{var}{string, variable name}
 
-\item{fmt}{format string for cells}
+\item{format}{format string for cells}
 
 \item{klass}{Internal detail.}
 
