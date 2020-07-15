@@ -8,10 +8,12 @@ jobs:
         container: rocker/tidyverse:3.6.2
         steps:
             - uses: actions/checkout@v2
+              with:
+                path: pkgsource
 
             - name: "check if manuals are upto date with roxygen comments"
               run: |
-                R -e "roxygen2::roxygenize('.', roclets = c('rd', 'collate', 'namespace'))"
+                Rscript -e "roxygen2::roxygenize('pkgdown', roclets = c('rd', 'collate', 'namespace'))"
                 if [[ -z $(git status -s) ]]
                 then
                     echo "manuals are not upto date with roxygen comments"
@@ -20,4 +22,3 @@ jobs:
                 else
                     echo "manuals are upto date with roxygen comments"
                 fi
-                
