@@ -1,0 +1,23 @@
+name: roxygen
+
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container: rocker/tidyverse:3.6.2
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: "check if manuals are upto date with roxygen comments"
+              run: |
+                R -e "roxygen2::roxygenize('.', roclets = c('rd', 'collate', 'namespace'))"
+                if [[ -z $(git status -s) ]]
+                then
+                    echo "manuals are not upto date with roxygen comments"
+                    echo "please rerun roxygen2::roxygenize('.', roclets = c('rd', 'collate', 'namespace'))"
+                    set -o errexit
+                else
+                    echo "manuals are upto date with roxygen comments"
+                fi
+                
