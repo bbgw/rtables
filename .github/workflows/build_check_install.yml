@@ -1,29 +1,27 @@
 name: build_check_install
 
-on:
-    push:
-        branches: [ bb_github_actions ]
-    pull_request:
-        branches: [ bb_github_actions ]
+on: [push]
 
 jobs:
     build:
         runs-on: rocker/tidyverse:3.6.2
 
-    steps:
-        - name: "Build R package"
-          run: |
-            R CMD build pkgsource
-            echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
-        - name: "Install R package"
-          run: R CMD INSTALL ${PKGBUILD}    
-        - name: "Check R package"
-          run: |
-            R CMD check --no-manual ${PKGBUILD}
-            result=$(tail -1 << parameters.package >>.Rcheck/00check.log)
-            [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
-            [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
-        - name: "Prepare Artifacts"
-          run: |
-            mkdir artifacts
-            cp ${PKGBUILD} artifacts/
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: "Build R package"
+            run: |
+                R CMD build pkgsource
+                echo "export PKGBUILD=$(echo *.tar.gz)" >> $BASH_ENV
+            - name: "Install R package"
+            run: R CMD INSTALL ${PKGBUILD}    
+            - name: "Check R package"
+            run: |
+                R CMD check --no-manual ${PKGBUILD}
+                result=$(tail -1 << parameters.package >>.Rcheck/00check.log)
+                [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
+                [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
+            - name: "Prepare Artifacts"
+            run: |
+                mkdir artifacts
+                cp ${PKGBUILD} artifacts/
