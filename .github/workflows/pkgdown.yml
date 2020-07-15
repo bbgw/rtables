@@ -9,4 +9,4 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - name: create pkgdown webiste
-                run: R -e 'pkgdown::build_site(".", devel = FALSE)'
+              run: R -e 'pkgdown::build_site(".", devel = FALSE)'
