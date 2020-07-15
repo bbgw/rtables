@@ -10,3 +10,7 @@ jobs:
             - uses: actions/checkout@v2
             - name: create pkgdown webiste
               run: R -e 'pkgdown::build_site(".", devel = FALSE)'
+            - uses: actions/upload-artifact@v2
+              with:
+                name: pkgdown-docs
+                path: docs
