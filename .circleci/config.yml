@@ -126,8 +126,9 @@ jobs:
           event: pass
           template: success_tagged_deploy_1
       - slack/notify:
-          channel: cicd
+          channel: muted
           event: fail
+          mentions: '@here'
           template: basic_fail_1
 
 workflows:
