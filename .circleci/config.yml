@@ -125,6 +125,10 @@ jobs:
           channel: cicd
           event: pass
           template: success_tagged_deploy_1
+      - slack/notify:
+          channel: cicd
+          event: fail
+          template: basic_fail_1
 
 workflows:
   version: 2
@@ -151,3 +155,4 @@ workflows:
           filters:
             branches:
               only: master
+          context: poc
