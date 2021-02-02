@@ -134,25 +134,25 @@ workflows:
   version: 2
   Rworkflow:
     jobs:
-      - version_validation
-      - roxygen
-      - pkgdown_build:
-          requires:
-            - roxygen
-            - version_validation
-      - build_check_install:
-          requires:
-            - roxygen
-            - version_validation
-          context: poc
-      - approve_deploy_pkgdown:
-          type: approval
-          requires:
-            - pkgdown_build
+#      - version_validation
+#      - roxygen
+#      - pkgdown_build:
+#          requires:
+#            - roxygen
+#            - version_validation
+#      - build_check_install:
+#          requires:
+#            - roxygen
+#            - version_validation
+#          context: poc
+#      - approve_deploy_pkgdown:
+#          type: approval
+#          requires:
+#            - pkgdown_build
       - pkgdown_deploy:
-          requires:
-            - approve_deploy_pkgdown
-          filters:
-            branches:
-              only: master
+#          requires:
+#            - approve_deploy_pkgdown
+#          filters:
+#            branches:
+#              only: master
           context: poc
