@@ -47,7 +47,7 @@ jobs:
             [[ $result = Status:* ]] || echo "could not get Status line"; set -o errexit
             [[ $result = *"Error"* ]] && echo "checks result in errors"; set -o errexit
       - slack/notify:
-          channel: nots
+          channel: cicd
           event: fail
           template: basic_fail_1
       - run:
@@ -121,6 +121,10 @@ jobs:
       - run:
           name: deploys docs
           command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/docs
+      - slack/notify:
+          channel: cicd
+          event: pass
+          template: success_tagged_deploy_1
 
 workflows:
   version: 2
