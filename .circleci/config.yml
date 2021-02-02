@@ -146,13 +146,21 @@ workflows:
 #            - roxygen
 #            - version_validation
 #          context: poc
-#      - approve_deploy_pkgdown:
-#          type: approval
+      - slack/on-hold:
+          context: poc
+          channel: muted
+          mentions: '@here'
 #          requires:
 #            - pkgdown_build
+#            - build_check_install
+      - approve_deploy_pkgdown:
+          type: approval
+          requires:
+            - slack/on-hold
+#            - pkgdown_build
       - pkgdown_deploy:
-#          requires:
-#            - approve_deploy_pkgdown
+          requires:
+            - approve_deploy_pkgdown
 #          filters:
 #            branches:
 #              only: master
