@@ -107,8 +107,14 @@ jobs:
       - attach_workspace:
           at: docs
       - run:
+          name: fake doc
+          command: mkdir -p docs/docs
+      - run:
           name: disable jekyll
-          command: touch docs/docs/.nojekyll
+          command: touch docs/docs/.nojekyll ｜ tee -a log.txt
+      - run:
+          name: get log
+          command: cat log.txt
       - run:
           name: install deps
           command: |
