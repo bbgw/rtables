@@ -1,0 +1,48 @@
+{
+  "blocks": [
+
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Job ${CIRCLE_JOB} Pass* :large_green_circle:"
+      }
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Project*: $CIRCLE_PROJECT_REPONAME"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Branch*: $CIRCLE_BRANCH"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Author*: $CIRCLE_USERNAME"
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Mentions*: $SLACK_PARAM_MENTIONS"
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "```$CAPTURED_LOG```"
+      }
+    }
+  ]
+}

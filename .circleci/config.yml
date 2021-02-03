@@ -29,6 +29,7 @@ jobs:
             fi
 
 
+
   build_check_install:
     docker:
       - image: << pipeline.parameters.docker-image >>
@@ -62,7 +63,7 @@ jobs:
           paths:
             - "*.tar.gz"
       - slack/notify:
-          channel: cicd
+          channel: muted
           event: fail
           template: basic_fail_1
 
@@ -111,18 +112,24 @@ jobs:
       - run:
           name: disable jekyll
           command: touch docs/docs/.nojekyll
-      - run:
-          name: install deps
-          command: |
-            npm install -g --silent gh-pages@3.0.0
-            git config user.email "ci-build@roche.com"
-            git config user.name "ci-build"
+#      - run:
+#          name: install deps
+#          command: |
+#            npm install -g --silent gh-pages@3.0.0
+#            git config user.email "ci-build@roche.com"
+#            git config user.name "ci-build"
       - add_ssh_keys:
           fingerprints:
             - "e3:e8:03:cb:2a:09:8f:70:b9:3a:66:f0:e8:ee:4f:59"
       - run:
           name: deploys docs
-          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/docs
+          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/docs |& tee logs.log
+      - run:
+          name: Inject log to message template
+          when: on_fail
+          #The $BASH_ENV workaround only works with bash. Other shells probably won’t work.
+          command: |
+            echo "export CAPTURED_LOG=\""`cat logs.log`"\"" >> $BASH_ENV
       - slack/notify:
           channel: muted
           event: pass
@@ -131,8 +138,80 @@ jobs:
           channel: muted
           event: fail
           mentions: '@here'
-          template: basic_fail_1
-
+#          template: basic_fail_1
+          custom: |
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Job ${CIRCLE_JOB} Failed* :red_circle:"
+                        }
+                    },
+                    {
+                    	"type": "divider"
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Job*: ${CIRCLE_JOB}"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Project*: $CIRCLE_PROJECT_REPONAME"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Branch*: $CIRCLE_BRANCH"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Author*: $CIRCLE_USERNAME"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Mentions*: $SLACK_PARAM_MENTIONS"
+                            }
+                        ]
+                    },
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "```$CAPTURED_LOG```"
+                      }
+                    }
+                ]
+            }
+  fake-build-notify-on-pass:
+    environment:
+      SLACK_PARAM_CHANNEL: muted
+      SLACK_PARAM_EVENT: always
+      SLACK_PARAM_MENTIONS: "@here"
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - run:
+          name: "Fake capture log"
+          command: echo "CAPTURED_LOG=\"cap'ed log from file\"" >> /tmp/SLACK_JOB_STATUS
+      - run:
+          name: "Demo Slack custom msg"
+          when: on_success
+          command: SLACK_PARAM_CUSTOM=`cat .circleci/custom.json` bash .circleci/notify.sh
 workflows:
   version: 2
   Rworkflow:
@@ -143,25 +222,35 @@ workflows:
 #          requires:
 #            - roxygen
 #            - version_validation
+
 #      - build_check_install:
 #          requires:
 #            - roxygen
 #            - version_validation
 #          context: poc
+
+      - fake-build-notify-on-pass:
+          context: poc
+#          requires:
+#            - pkgdown_build
+#            - build_check_install
+
       - slack/on-hold:
           context: poc
           channel: muted
           mentions: '@here'
-#          requires:
-#            - pkgdown_build
-#            - build_check_install
+          requires:
+            - fake-build-notify-on-pass
+
       - approve_deploy_pkgdown:
           type: approval
           requires:
             - slack/on-hold
 #            - pkgdown_build
+
       - pkgdown_deploy:
           requires:
+#            - fake-build-notify-on-pass
             - approve_deploy_pkgdown
 #          filters:
 #            branches:
