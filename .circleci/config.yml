@@ -107,6 +107,8 @@ jobs:
       - attach_workspace:
           at: docs
       - run:
+          command: mkdir -p docs/docs
+      - run:
           name: disable jekyll
           command: touch docs/docs/.nojekyll
       - run:
@@ -122,7 +124,7 @@ jobs:
           name: deploys docs
           command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/docs
       - slack/notify:
-          channel: cicd
+          channel: muted
           event: pass
           template: success_tagged_deploy_1
       - slack/notify:
