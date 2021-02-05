@@ -200,7 +200,7 @@ jobs:
     environment:
       SLACK_PARAM_CHANNEL: muted
       SLACK_PARAM_EVENT: always
-      SLACK_PARAM_MENTIONS: "@here"
+#      SLACK_PARAM_MENTIONS: "@here"
     docker:
       - image: cimg/base:2020.01
     steps:
@@ -222,7 +222,6 @@ workflows:
 #          requires:
 #            - roxygen
 #            - version_validation
-
 #      - build_check_install:
 #          requires:
 #            - roxygen
@@ -231,13 +230,10 @@ workflows:
 
       - fake-build-notify-on-pass:
           context: poc
-#          requires:
-#            - pkgdown_build
-#            - build_check_install
 
       - slack/on-hold:
           context: poc
-          channel: muted
+          channel: cicd
           mentions: '@here'
           requires:
             - fake-build-notify-on-pass
@@ -246,13 +242,11 @@ workflows:
           type: approval
           requires:
             - slack/on-hold
-#            - pkgdown_build
 
       - pkgdown_deploy:
+          context: poc
           requires:
-#            - fake-build-notify-on-pass
             - approve_deploy_pkgdown
 #          filters:
 #            branches:
 #              only: master
-          context: poc
