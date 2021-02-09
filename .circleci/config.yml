@@ -7,6 +7,21 @@ parameters:
     type: string
     default: "rocker/tidyverse:3.6.3"
 
+commands:
+  git-pr:
+    description "handles PR creation"
+    steps:
+#      - run: checkout
+      - run:
+        command: |
+          set -ex
+          if [[ -n "${CIRCLE_PR_NUMBER}" ]]
+          then
+              FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
+              git fetch -u origin ${FETCH_REFS}
+              git checkout "pr/${CIRCLE_PR_NUMBER}/merge"
+          fi
+          set +x
 jobs:
 
   version_validation:
@@ -205,6 +220,7 @@ jobs:
       - image: cimg/base:2020.01
     steps:
       - checkout
+      - git-pr
       - run:
           name: "Fake capture log"
           command: echo "CAPTURED_LOG=\"cap'ed log from file\"" >> /tmp/SLACK_JOB_STATUS
